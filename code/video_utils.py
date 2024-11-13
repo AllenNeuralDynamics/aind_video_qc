@@ -20,10 +20,10 @@ def video_info_check(dir):
 
 def cal_video_temporal_qm(video_info):
     video_temporal_qm = dict()
-    video_temporal_qm['IFI_cdf_quantile'] = list(np.arange(0, 105, 5))
+    video_temporal_qm['IFI_cdf_quantile'] = np.arange(0, 105, 5).tolist()
     video_temporal_qm['IFI_cdf_value'] = None
     video_temporal_qm['IFI_range'] = None
-    video_temporal_qm['ITI_cdf_quantile'] = list(np.arange(0, 105, 5))
+    video_temporal_qm['ITI_cdf_quantile'] = np.arange(0, 105, 5).tolist()
     video_temporal_qm['ITI_cdf_value'] = None
     video_temporal_qm['ITI_range'] = None
     video_temporal_qm['frame_count'] = None
@@ -40,8 +40,8 @@ def cal_video_temporal_qm(video_info):
             video_temporal_qm['timestampe_count'] = len(video_meta_data)
             ITI = np.diff(video_meta_data[0]*1000)
             IFI = np.diff(video_meta_data[2]/1000000)
-            video_temporal_qm['IFI_cdf_value'] = list(np.percentile(IFI, video_temporal_qm['IFI_cdf_quantile']))
-            video_temporal_qm['ITI_cdf_value'] = list(np.percentile(ITI, video_temporal_qm['ITI_cdf_quantile']))
+            video_temporal_qm['IFI_cdf_value'] = np.percentile(IFI, video_temporal_qm['IFI_cdf_quantile']).tolist()
+            video_temporal_qm['ITI_cdf_value'] = np.percentile(ITI, video_temporal_qm['ITI_cdf_quantile']).tolist()
             video_temporal_qm['IFI_range'] = [np.min(IFI), np.max(IFI)]
             video_temporal_qm['ITI_range'] = [np.min(ITI), np.max(ITI)]
             hist_joint_all = sns.jointplot(x = ITI, y = IFI, kind = 'hist', bins = 10,

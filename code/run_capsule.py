@@ -44,9 +44,9 @@ if __name__ == "__main__":
         json.dump(existing_data, file, indent=4, sort_keys=True)
 
     # save figures
-    hist_ifi.savefig(os.path.join(video_info['output_dir']), 'hist_interframe-intervals.png')
-    hist_iti.savefig(os.path.join(video_info['output_dir']), 'hist_intertime-intervals.png')
-    hist_joint.savefig(os.path.join(video_info['output_dir']), 'joint_dist_interframe-intervals_intertime-intervals.png')
-    hist_joint_peak.savefig(os.path.join(video_info['output_dir']), 'joint_dist_interframe-intervals_intertime-intervals95quantile.png')
+    hist_ifi.savefig(os.path.join(video_info['output_dir'], 'hist_interframe-intervals.png'))
+    hist_iti.savefig(os.path.join(video_info['output_dir'], 'hist_intertime-intervals.png'))
+    hist_joint.savefig(os.path.join(video_info['output_dir'], 'joint_dist_interframe-intervals_intertime-intervals.png'))
+    hist_joint_peak.savefig(os.path.join(video_info['output_dir'], 'joint_dist_interframe-intervals_intertime-intervals95quantile.png'))
 
 
