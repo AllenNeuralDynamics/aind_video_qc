@@ -206,7 +206,7 @@ def generate_focus_report(frames, focus_threshold=60,
     print(f"Report saved as {output_pdf}")
     print(f"Example frames saved in {output_examples_dir}")
 
-    return percentiles, percentile_values
+    return percentiles, percentile_values.tolist()
 
 
 def generate_contrast_report(frames, contrast_threshold=1, 
@@ -311,7 +311,7 @@ def generate_contrast_report(frames, contrast_threshold=1,
     print(f"Report saved as {output_pdf}")
     print(f"Example frames saved in {output_examples_dir}")
     
-    return percentiles, percentile_values
+    return percentiles, percentile_values.tolist()
 
 
 def generate_intensity_report(frames, lower_threshold=30, upper_threshold=40, 
@@ -444,4 +444,4 @@ def generate_intensity_report(frames, lower_threshold=30, upper_threshold=40,
     print(f"Report saved as {output_pdf}")
     print(f"Example frames and histograms saved in {output_examples_dir}")
 
-    return percentiles, percentile_values
+    return percentiles, percentile_values.tolist()

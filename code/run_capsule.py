@@ -8,7 +8,7 @@ import cv2
 import os
 from pathlib import Path
 import json
-from video_utils import video_info_check, cal_video_temporal_qm, extract_frames
+from video_utils import video_info_check, cal_video_temporal_qm, extract_frames, generate_focus_report, generate_contrast_report, generate_intensity_report
 
 if __name__ == "__main__": 
     # this needs to be from the user input
