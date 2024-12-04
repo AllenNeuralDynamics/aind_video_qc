@@ -45,6 +45,7 @@ if __name__ == "__main__":
 
     # save figures
     hist_ifi.savefig(os.path.join(video_info['output_dir'], 'hist_interframe-intervals.png'))
+    print(f"Saved in {os.path.join(video_info['output_dir'], 'hist_interframe-intervals.png')}")
     hist_iti.savefig(os.path.join(video_info['output_dir'], 'hist_intertime-intervals.png'))
     hist_joint.savefig(os.path.join(video_info['output_dir'], 'joint_dist_interframe-intervals_intertime-intervals.png'))
     hist_joint_peak.savefig(os.path.join(video_info['output_dir'], 'joint_dist_interframe-intervals_intertime-intervals95quantile.png'))
