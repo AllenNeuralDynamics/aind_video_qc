@@ -8,46 +8,76 @@ import cv2
 import os
 from pathlib import Path
 import json
-from video_utils import video_info_check, cal_video_temporal_qm
+from datetime import datetime
+from typing import Union
+from aind_data_schema.core.quality_control import (QCEvaluation, QCMetric,
+                                                   QCStatus, QualityControl,
+                                                   Stage, Status)
+from aind_data_schema_models.modalities import Modality
+from video_utils import video_info_check, cal_video_temporal_qm, append_json
+from PIL import Image, ImageDraw, ImageFont
+
+status_pass = QCStatus(
+    status=Status.PASS,
+    evaluator="Automated",
+    timestamp=datetime.utcnow().isoformat(),
+)
+status_fail = QCStatus(
+    status=Status.FAIL,
+    evaluator="Automated",
+    timestamp=datetime.utcnow().isoformat(),
+)
+def raw_qc(video_name):
+    print(f"Video_name: {video_name}")
+    # Initializing qc
+    qc = QualityControl(evaluations=[])
+    QCMetric_list = []
+    # video exists
+    video_name = 'bottom_camera'
+    video_info = video_info_check(video_name)
+    video_detection_png = f'/{video_name}/detected_videos.png'
+    # append to quality_cont
+    cur_metric = QCMetric(
+        name='video_count',
+        value=video_info['video_detection_count'],
+        status_history=[status_pass if video_info['video_detection_count']==1 else status_fail],
+        description="Pass when equal to 1",
+        reference=video_detection_png,  
+    )
+    QCMetric_list.append(cur_metric)
+    if video_info['video_detection_count']==1:
+        # video timestamps exists
+        video_timestamps_detection_png = f'/{video_name}/detected_videos_timestamps.png'
+        cur_metric = QCMetric(
+            name = 'video_metadata',
+            value = video_info['timestamps_exist'],
+            status_history=[status_pass if video_info['timestamps_exist'] else status_fail],
+            description='Pass when exist',
+            reference=video_detection_png,
+        )
+        QCMetric_list.append(cur_metric)
+        # frame counts equal
+
+        # Inter frame interval distribution
+        
+
+    evaluation_video_detection = QCEvaluation(
+    name=f"{video_name}_data_detection",
+    modality=Modality.BEHAVIOR_VIDEOS,
+    stage=Stage.PROCESSING,
+    metrics=QCMetric_list,
+    notes="Pass when both video and video metadata exist",
+    )
+
+    qc.evaluations.append(evaluation_video_detection)
+    qc.write_standard_file(output_directory=os.path.join('/root/capsule/results', video_name))
+    print(f'Quality control status {qc.status}')
+
+    return video_info
 
 if __name__ == "__main__": 
     # this needs to be from the user input
-    dir = '/root/capsule/data/behavior_711042_2024-09-13_09-19-15/behavior-videos/bottom_camera.avi'
-    video_info = video_info_check(dir)
-    os.makedirs(video_info['output_dir'], exist_ok=True)
-    json_file = os.path.join(video_info['output_dir'], 'video_qm.json')
-    print(json_file)
-    # will update to create if none, append if exist
-    with open(os.path.join(video_info['output_dir'], "video_qm.json"), "w") as file:
-        json.dump(video_info, file, indent=4, sort_keys=True)
-    file.close()
-    
-    hist_iti, hist_ifi, hist_joint, hist_joint_peak, video_temporal_qm = cal_video_temporal_qm(video_info)
-
-    # Read the existing data
-    with open(json_file, 'r') as file:
-        try:
-            existing_data = json.load(file)
-        except json.JSONDecodeError:
-            existing_data = []  # Initialize as an empty list if file is empty
-
-    # Check if the file is a list or dictionary and append accordingly
-    if isinstance(existing_data, list):
-        existing_data.append(video_temporal_qm)
-    elif isinstance(existing_data, dict):
-        existing_data.update(video_temporal_qm)
-    else:
-        print("Unexpected JSON structure")
-
-    # Write the updated data back to the file
-    with open(json_file, 'w') as file:
-        json.dump(existing_data, file, indent=4, sort_keys=True)
-
-    # save figures
-    hist_ifi.savefig(os.path.join(video_info['output_dir'], 'hist_interframe-intervals.png'))
-    print(f"Saved in {os.path.join(video_info['output_dir'], 'hist_interframe-intervals.png')}")
-    hist_iti.savefig(os.path.join(video_info['output_dir'], 'hist_intertime-intervals.png'))
-    hist_joint.savefig(os.path.join(video_info['output_dir'], 'joint_dist_interframe-intervals_intertime-intervals.png'))
-    hist_joint_peak.savefig(os.path.join(video_info['output_dir'], 'joint_dist_interframe-intervals_intertime-intervals95quantile.png'))
-
+    video_name = 'bottom_camera'
+    video_info = raw_qc(video_name)
+    append_json(video_info, os.path.join(video_info['output_dir'], 'quality_analysis.json'))
 

@@ -29,6 +29,31 @@ def create_text_png(text, save_path, image_width=200, image_height=100, font_siz
     image.save(save_path)
     print(f'Created {save_path}')
 
+def append_json(dict_name, json_dir):
+    if not os.path.exists(json_dir):
+        with open(json_dir, "w") as file:
+            json.dump(dict_name, file, indent=4, sort_keys=True)
+        file.close()
+        print(f'Saved to {json_dir}.')
+    else:
+        with open(json_dir, 'r') as file:
+            try:
+                existing_data = json.load(file)
+            except json.JSONDecodeError:
+                existing_data = []  # Initialize as an empty list if file is empty
+        file.close()
+        if isinstance(existing_data, list):
+            existing_data.append(dict_name)
+        elif isinstance(existing_data, dict):
+            existing_data.update(dict_name)
+        else:
+            print("Unexpected JSON structure")
+        
+        with open(json_dir, 'w') as file:
+            json.dump(existing_data, file, indent=4, sort_keys=True)
+        file.close()
+        print(f'Appended to {json_dir}.')
+
 def video_info_check(video_name):
     data_path = '/root/capsule/data'
     video_paths = []
@@ -45,6 +70,7 @@ def video_info_check(video_name):
     video_info = dict()
     video_info['video_detection_count'] = len(video_paths)
     video_info['output_dir'] = os.path.join('/root/capsule/results', video_name)
+    os.makedirs(video_info['output_dir'], exist_ok=True)
     create_text_png(f"Detected {len(video_paths)} video(s).", os.path.join(video_info['output_dir'], 'detected_videos.png'))
     # print .png as output
     if video_info['video_detection_count'] == 1:
@@ -53,7 +79,7 @@ def video_info_check(video_name):
         video_info['video_file'] = video_paths
         video_info['timestamps_file'] = os.path.join(base_paths, f"{video_name}.csv")
         video_info['timestamps_exist'] = os.path.exists(video_info['timestamps_file'])
-        create_text_png(f"Video timestamps exist: {str(video_info['timestamps_exist'])}.", os.path.join(video_info['output_dir'], 'detected_videos_timestamps.png'))
+        create_text_png(f"Metadata exist: {str(video_info['timestamps_exist'])}.", os.path.join(video_info['output_dir'], 'detected_videos_timestamps.png'))
     return video_info
 
 def cal_video_temporal_qm(video_info):
@@ -68,8 +94,10 @@ def cal_video_temporal_qm(video_info):
     video_temporal_qm['timestampe_count'] = None
     hist_iti = None
     hist_ifi = None
-    if not video_info['video_exist']:
+    if video_info['video_detection_count']==0:
         raise ValueError('Target video does not exist')
+    elif video_info['video_detection_count']>1:
+        raise ValueError('More than one video detected.')
     else:
         video = cv2.VideoCapture(video_info['video_file'])
         video_temporal_qm['frame_count'] = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -83,14 +111,14 @@ def cal_video_temporal_qm(video_info):
             video_temporal_qm['IFI_range'] = [np.min(IFI), np.max(IFI)]
             video_temporal_qm['ITI_range'] = [np.min(ITI), np.max(ITI)]
             hist_joint_all = sns.jointplot(x = ITI, y = IFI, kind = 'hist', bins = 10,
-                       stat='probability',marginal_ticks=True, 
-                       marginal_kws=dict(bins=20, fill=True, stat='probability')).set_axis_labels(xlabel = 'Harp time (ms)', ylabel='Camera time')
+                    stat='probability',marginal_ticks=True, 
+                    marginal_kws=dict(bins=20, fill=True, stat='probability')).set_axis_labels(xlabel = 'Harp time (ms)', ylabel='Camera time')
             hist_joint_all.savefig(os.path.join(video_info['output_dir'], 'hist_joint_all.png'))
             mode_range  = (ITI>=video_temporal_qm['ITI_cdf_value'][1]) & (ITI<=video_temporal_qm['ITI_cdf_value'][-2]) & (IFI>=video_temporal_qm['IFI_cdf_value'][1]) & (IFI <=video_temporal_qm['IFI_cdf_value'][-2])
             mode_range  = (ITI<=video_temporal_qm['ITI_cdf_value'][-2]) & (IFI<=video_temporal_qm['IFI_cdf_value'][-2])
             hist_joint_peak = sns.jointplot(x = ITI[mode_range], y = IFI[mode_range], kind = 'hist', bins = 10,
-                       stat='probability',marginal_ticks=True, 
-                       marginal_kws=dict(bins=20, fill=True, stat='probability')).set_axis_labels(xlabel = 'Harp time (ms)', ylabel='Camera time (ms)')
+                    stat='probability',marginal_ticks=True, 
+                    marginal_kws=dict(bins=20, fill=True, stat='probability')).set_axis_labels(xlabel = 'Harp time (ms)', ylabel='Camera time (ms)')
             hist_joint_peak.savefig(os.path.join(video_info['output_dir'], 'hist_joint_peak.png'))
             hist_iti, ax = plt.subplots()
             ax.hist(ITI, bins=30)
