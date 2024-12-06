@@ -22,6 +22,7 @@ RUN pip install -U --no-cache-dir \
     opencv-python-headless==4.10.0.84 \
     pandas==2.2.3 \
     seaborn==0.13.2 \
+    pillow==11.0.0 \
     -e git+https://github.com/AllenNeuralDynamics/aind-video-utils@main#egg=aind-video-utils
 
 ADD "https://github.com/coder/code-server/releases/download/v4.9.0/code-server-4.9.0-linux-amd64.tar.gz" /.code-server/code-server.tar.gz
